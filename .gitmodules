@@ -2,3 +2,6 @@
 	path = libdragon
 	url = https://github.com/DragonMinded/libdragon
 	branch = trunk
+[submodule "assets"]
+	path = assets
+	url = git@github.com:stefanmielke/gacha64-assets.git
