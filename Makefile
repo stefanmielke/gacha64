@@ -1,18 +1,48 @@
-V=1
-SOURCE_DIR=src
-BUILD_DIR=build
+V = 1
+SOURCE_DIR = src
+BUILD_DIR = build
+MKSPRITEPATH= $(N64_ROOTDIR)/bin/mksprite
 include $(N64_INST)/include/n64.mk
 
-src = main.c
+N64_ROM_TITLE = "Gacha64"
+N64_ROM_SAVETYPE = # Supported savetypes: none eeprom4k eeprom16 sram256k sram768k sram1m flashram
+N64_ROM_REGIONFREE = true
+
+C_ROOT_FILES := $(wildcard src/*.c)
+
+SRC = $(C_ROOT_FILES)
+OBJS = $(SRC:%.c=%.o)
+DEPS = $(SRC:%.c=%.d)
 
 all: gacha64.z64
 
 gacha64.z64: N64_ROM_TITLE="Gacha64"
-$(BUILD_DIR)/gacha64.elf: $(src:%.c=$(BUILD_DIR)/%.o)
+gacha64.z64: $(BUILD_DIR)/gacha64.dfs
+
+$(BUILD_DIR)/gacha64.dfs: $(wildcard build/filesystem/*)
+	mkdir -p build/filesystem
+	mkdir -p build/filesystem/gfx
+
+	$(MKSPRITEPATH) 32 16 1 assets/gfx/game_ui.png build/filesystem/gfx/game_ui.sprite
+
+	$(N64_MKDFS) $@ $(<D)
+
+$(BUILD_DIR)/gacha64.elf: $(OBJS)
 
 clean:
-	rm -f $(BUILD_DIR)/* gacha64.z64
+	find . -name '*.v64' -delete
+	find . -name '*.z64' -delete
+	find . -name '*.elf' -delete
+	find . -name '*.o' -delete
+	find . -name '*.d' -delete
+	find . -name '*.bin' -delete
+	find . -name '*.plan_bak*' -delete
+	find ./src -name '*.sprite' -delete
+	find . -name '*.dfs' -delete
+	find . -name '*.raw' -delete
+	find . -name '*.z64' -delete
+	find . -name '*.n64' -delete
 
--include $(wildcard $(BUILD_DIR)/*.d)
+-include $(DEPS)
 
 .PHONY: all clean

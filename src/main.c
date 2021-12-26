@@ -5,8 +5,7 @@
 int main(void) {
 	console_init();
 
-	debug_init_usblog();
-	console_set_debug(true);
+	console_set_debug(false);
 
 	printf("Hello world!\n");
 
