@@ -1,0 +1,18 @@
+{
+    "configurations": [
+        {
+            "name": "N64",
+            "includePath": [
+                "${default}",
+                "src/libs/libdragon-extensions/include",
+                "libdragon/include"
+            ],
+            "defines": [],
+            "compilerPath": "/usr/bin/gcc",
+            "cStandard": "gnu99",
+            "cppStandard": "gnu++14",
+            "intelliSenseMode": "linux-gcc-x64"
+        }
+    ],
+    "version": 4
+}
