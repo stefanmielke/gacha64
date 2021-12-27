@@ -6,9 +6,17 @@
 
 bool is_online;
 
-bool awaiting_http_response;
 char responses_total_lines;
 char responses[20][255];  // 20 lines, max 255 chars each
+
+typedef enum NetState {
+	NS_GetNotification,
+	NS_Paused,
+
+	NS_AwaitingResponse,
+	NS_SendingNotification,
+	NS_GettingNotifications,
+} NetState;
 
 void online_init() {
 	is_online = network_initialize();
@@ -21,9 +29,9 @@ void online_init() {
 }
 
 void online_tick() {
-	static bool already_done = false;
+	static NetState network_state = NS_GetNotification;
 	if (is_online) {
-		if (awaiting_http_response) {
+		if (network_state > NS_AwaitingResponse) {
 			int header;
 			if ((header = usb_poll())) {
 				int type = USBHEADER_GETTYPE(header);
@@ -53,15 +61,20 @@ void online_tick() {
 						}
 
 						responses_total_lines = cur_line + 1;
+						network_state = NS_Paused;
 					} break;
-					case NETTYPE_URL_POST:
-						already_done = false;
-						break;
+					case NETTYPE_URL_POST: {
+						switch (network_state) {
+							case NS_SendingNotification:
+								network_state = NS_GetNotification;
+								break;
+							default:
+								break;
+						}
+					} break;
 					default:
 						break;
 				}
-
-				awaiting_http_response = false;
 			}
 		} else {
 			char *message = notification_dequeue();
@@ -69,13 +82,10 @@ void online_tick() {
 				char url[255];
 				snprintf(url, 255, "http://localhost:5050/notifications?message=%s", message);
 				network_url_post(url);
-				awaiting_http_response = true;
-			} else {
-				if (!already_done) {
-					network_url_fetch("http://localhost:5050/notifications/");
-					awaiting_http_response = true;
-					already_done = true;
-				}
+				network_state = NS_SendingNotification;
+			} else if (network_state == NS_GetNotification) {
+				network_url_fetch("http://localhost:5050/notifications/");
+				network_state = NS_GettingNotifications;
 			}
 		}
 	}
