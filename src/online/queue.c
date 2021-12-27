@@ -2,8 +2,8 @@
 
 #include <memory.h>
 
-#define MAX_NOTIFICATIONS 20
-QueueItem notifications[MAX_NOTIFICATIONS];
+#define MAX_QUEUE_ITEMS 20
+QueueItem queue[MAX_QUEUE_ITEMS];
 int current_enqueue_pos;
 int current_dequeue_pos;
 
@@ -13,10 +13,10 @@ void queue_init() {
 }
 
 void queue_enqueue(QueueItem *item) {
-	memcpy(&notifications[current_enqueue_pos], item, sizeof(QueueItem));
+	memcpy(&queue[current_enqueue_pos], item, sizeof(QueueItem));
 
 	++current_enqueue_pos;
-	if (current_enqueue_pos >= MAX_NOTIFICATIONS)
+	if (current_enqueue_pos >= MAX_QUEUE_ITEMS)
 		current_enqueue_pos = 0;
 }
 
@@ -44,10 +44,10 @@ QueueItem *queue_dequeue() {
 		return NULL;
 	}
 
-	QueueItem *item = &notifications[current_dequeue_pos];
+	QueueItem *item = &queue[current_dequeue_pos];
 	++current_dequeue_pos;
 
-	if (current_dequeue_pos >= MAX_NOTIFICATIONS)
+	if (current_dequeue_pos >= MAX_QUEUE_ITEMS)
 		current_dequeue_pos = 0;
 
 	return item;
