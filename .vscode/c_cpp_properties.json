@@ -4,7 +4,7 @@
             "name": "N64",
             "includePath": [
                 "${default}",
-                "src/libs/libdragon-extensions/include",
+                "libs/libdragon-extensions/include",
                 "libdragon/include"
             ],
             "defines": [],

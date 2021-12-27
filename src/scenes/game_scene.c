@@ -1,52 +1,21 @@
-#include <stdio.h>
+#include "game_scene.h"
 
-#include <libdragon.h>
+#include "scene_loader.h"
+#include "../game.h"
+#include "../online/online.h"
 
-#include "online/online.h"
+typedef struct MainScreen {
+} MainScreen;
+MainScreen *main_data;
 
-typedef enum GameState {
-	GS_OpenGacha,
+void game_scene_tween_color_callback(void *target, float current);
+void game_scene_tween_color_callback_end(void *target);
 
-	GS_Trade,
-	GS_TradeStart,
-	GS_TradeWaitStart,
-} GameState;
-GameState state;
-
-struct controller_data controller_data;
-
-void setup();
-void update();
-void render();
-
-int main(void) {
-	setup();
-
-	while (1) {
-		update();
-
-		render();
-	}
+void game_scene_create() {
+	main_data = mem_zone_alloc(&memory_pool, sizeof(MainScreen));
 }
 
-void setup() {
-	display_init(RESOLUTION_640x480, DEPTH_16_BPP, 2, GAMMA_NONE, ANTIALIAS_RESAMPLE);
-	dfs_init(DFS_DEFAULT_LOCATION);
-	rdp_init();
-	timer_init();
-	controller_init();
-
-	online_init();
-
-	state = GS_OpenGacha;
-}
-
-void update() {
-	online_tick();
-
-	controller_scan();
-	controller_data = get_keys_down();
-
+short game_scene_tick() {
 	if (state == GS_OpenGacha) {
 		if (controller_data.c[0].A) {
 			// open gacha!
@@ -68,13 +37,11 @@ void update() {
 				break;
 		}
 	}
+
+	return SCENE_MAIN;
 }
 
-void render() {
-	static display_context_t disp = 0;
-	while (!(disp = display_lock()))
-		;
-
+void game_scene_display(display_context_t disp) {
 	graphics_fill_screen(disp, 0);
 	graphics_set_color(0xFFFFFFFF, 0);
 
@@ -83,6 +50,7 @@ void render() {
 	for (size_t i = 0; i < responses_total_lines; ++i) {
 		graphics_draw_text(disp, start_x, start_y + (i * 16), &responses[i][0]);
 	}
+}
 
-	display_show(disp);
+void game_scene_destroy() {
 }
