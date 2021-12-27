@@ -22,7 +22,7 @@
         {
             "label": "Run cen64",
             "type": "shell",
-            "command": "${N64DevKit}/cen64 -debug localhost:8080 -flash ${N64DevKit}/eep4k.bin ${N64DevKit}/pifdata.bin ${workspaceFolder}/undercontrol.z64",
+            "command": "${N64DevKit}/cen64 -debug localhost:8080 -flash ${N64DevKit}/eep4k.bin ${N64DevKit}/pifdata.bin ${workspaceFolder}/gacha64.z64",
             "group": "build",
             "dependsOn": "Make Rom",
             "isBackground": true,

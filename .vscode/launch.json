@@ -5,14 +5,14 @@
             "type": "by-gdb",
             "request": "launch",
             "name": "Debug with cen64",
-            "program": "${workspaceFolder}/build/undercontrol.elf",
+            "program": "${workspaceFolder}/build/gacha64.elf",
             "cwd": "${workspaceRoot}",
             "debuggerPath": "gdb-multiarch",
             "remote": {
                 "enabled": true,
                 "address": ":8080",
                 "mode": "remote",
-                "execfile": "${workspaceFolder}/build/undercontrol.elf"
+                "execfile": "${workspaceFolder}/build/gacha64.elf"
             },
             "commandsBeforeExec": [
                 "set arch mips:4300",
