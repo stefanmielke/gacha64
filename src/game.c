@@ -2,11 +2,10 @@
 
 #include <stdio.h>
 #include <libdragon.h>
+#include <menu.h>
 
 #include "online/online.h"
 #include "scenes/scene_loader.h"
-
-GameState state;
 
 struct controller_data controller_data;
 SceneManager *scene_manager;
@@ -37,10 +36,10 @@ void setup() {
 
 	mem_zone_init(&memory_pool, 1024 * 1024);
 
+	menu_global_init();
+
 	scene_manager = scene_manager_init(NULL, &memory_pool, change_scene);
 	scene_manager_change_scene(scene_manager, SCENE_GAME);
-
-	state = GS_OpenGacha;
 }
 
 void update() {
