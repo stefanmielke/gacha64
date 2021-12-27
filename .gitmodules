@@ -5,3 +5,6 @@
 [submodule "assets"]
 	path = assets
 	url = git@github.com:stefanmielke/gacha64-assets.git
+[submodule "libs/libdragon-extensions"]
+	path = libs/libdragon-extensions
+	url = git@github.com:stefanmielke/libdragon-extensions.git
