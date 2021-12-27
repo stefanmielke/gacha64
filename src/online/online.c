@@ -2,12 +2,15 @@
 
 #include <memory.h>
 #include "network.h"
-#include "notification_queue.h"
+#include "queue.h"
 
 bool is_online;
 
 char responses_total_lines;
 char responses[20][255];  // 20 lines, max 255 chars each
+
+char server_url[255];
+char server_connect[255];
 
 typedef enum NetState {
 	NS_GetNotification,
@@ -16,6 +19,9 @@ typedef enum NetState {
 	NS_AwaitingResponse,
 	NS_SendingNotification,
 	NS_GettingNotifications,
+	NS_RequestingServer,
+	NS_ConnectingServer,
+	NS_Connected,
 } NetState;
 
 void online_init() {
@@ -24,7 +30,7 @@ void online_init() {
 		responses_total_lines = 1;
 		memcpy(responses[0], "Offline Mode", 12);
 
-		notification_queue_init();
+		queue_init();
 	}
 }
 
@@ -63,11 +69,40 @@ void online_tick() {
 						responses_total_lines = cur_line + 1;
 						network_state = NS_Paused;
 					} break;
+					case NETTYPE_UDP_CONNECT: {
+						network_state = NS_Connected;
+					} break;
 					case NETTYPE_URL_POST: {
 						switch (network_state) {
 							case NS_SendingNotification:
 								network_state = NS_GetNotification;
 								break;
+							case NS_RequestingServer: {
+								memset(server_url, 0, 255);
+								memset(server_connect, 0, 255);
+
+								int cur_line = 0;
+								int cur_column = 0;
+								for (size_t i = 0; i < size; ++i) {
+									if (buffer[i] == '\n') {
+										++cur_line;
+										cur_column = 0;
+										if (cur_line >= 2)
+											break;
+									} else {
+										if (cur_column < 255) {
+											if (cur_line == 0)
+												server_url[cur_column] = buffer[i];
+											else
+												server_connect[cur_column] = buffer[i];
+										}
+										++cur_column;
+									}
+								}
+
+								network_state = NS_ConnectingServer;
+								network_udp_connect(server_connect);
+							} break;
 							default:
 								break;
 						}
@@ -77,12 +112,23 @@ void online_tick() {
 				}
 			}
 		} else {
-			char *message = notification_dequeue();
-			if (message) {
-				char url[255];
-				snprintf(url, 255, "http://localhost:5050/notifications?message=%s", message);
-				network_url_post(url);
-				network_state = NS_SendingNotification;
+			QueueItem *item = queue_dequeue();
+			if (item) {
+				switch (item->type) {
+					case QIT_Notification: {
+						char url[255];
+						snprintf(url, 255, "http://localhost:5050/notifications?message=%s",
+								 item->data.notification.message);
+						network_url_post(url);
+						network_state = NS_SendingNotification;
+					} break;
+					case QIT_RequestServer: {
+						network_url_post("http://localhost:5050/exchanges");
+						network_state = NS_RequestingServer;
+					} break;
+					default:
+						break;
+				}
 			} else if (network_state == NS_GetNotification) {
 				network_url_fetch("http://localhost:5050/notifications/");
 				network_state = NS_GettingNotifications;
@@ -95,5 +141,9 @@ void online_notify(char *message) {
 	if (!is_online)
 		return;
 
-	notification_enqueue(message, strlen(message));
+	queue_notification(message, strlen(message));
+}
+
+void online_start_exchange() {
+	queue_request_server();
 }

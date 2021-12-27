@@ -4,6 +4,15 @@
 
 #include "online/online.h"
 
+typedef enum GameState {
+	GS_OpenGacha,
+
+	GS_Trade,
+	GS_TradeStart,
+	GS_TradeWaitStart,
+} GameState;
+GameState state;
+
 struct controller_data controller_data;
 
 void setup();
@@ -28,6 +37,8 @@ void setup() {
 	controller_init();
 
 	online_init();
+
+	state = GS_OpenGacha;
 }
 
 void update() {
@@ -36,11 +47,26 @@ void update() {
 	controller_scan();
 	controller_data = get_keys_down();
 
-	// open gacha!
-	if (controller_data.c[0].A) {
-		char notification[255];
-		snprintf(notification, 255, "%s_got_a_'%s'", "Mielke", "Bearly");
-		online_notify(notification);
+	if (state == GS_OpenGacha) {
+		if (controller_data.c[0].A) {
+			// open gacha!
+			char notification[255];
+			snprintf(notification, 255, "%s_got_a_'%s'", "Mielke", "Bearly");
+			online_notify(notification);
+		} else if (controller_data.c[0].B) {
+			// connect to exchange server
+			state = GS_TradeStart;
+		}
+	} else if (state > GS_Trade) {
+		switch (state) {
+			case GS_TradeStart:
+				online_start_exchange();
+				state = GS_TradeWaitStart;
+				break;
+			case GS_TradeWaitStart:
+			default:
+				break;
+		}
 	}
 }
 

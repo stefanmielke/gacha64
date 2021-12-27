@@ -4,7 +4,7 @@ BUILD_DIR = build
 MKSPRITEPATH= $(N64_ROOTDIR)/bin/mksprite
 include $(N64_INST)/include/n64.mk
 
-N64_CFLAGS += -Wno-error=format-contains-nul
+N64_CFLAGS += -Wno-error=format-contains-nul -Wno-error=format-truncation
 
 N64_ROM_TITLE = "Gacha64"
 N64_ROM_SAVETYPE = # Supported savetypes: none eeprom4k eeprom16 sram256k sram768k sram1m flashram
