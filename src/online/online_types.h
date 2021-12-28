@@ -2,12 +2,14 @@
 
 #include <stddef.h>
 
+typedef unsigned int u32;
+
 typedef enum NetPacketType {
 	NPT_SendStickerId,
 } NetPacketType;
 
 typedef struct NetPacketSendStickerId {
-	size_t sticker_id;
+	u32 sticker_id;
 } NetPacketSendStickerId;
 
 typedef union NetPacketData {

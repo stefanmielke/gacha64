@@ -5,13 +5,13 @@
 typedef enum NetState {
 	NS_GetNotification,
 	NS_Paused,
+	NS_Connected,
 
 	NS_AwaitingResponse,
 	NS_SendingNotification,
 	NS_GettingNotifications,
 	NS_RequestingServer,
 	NS_ConnectingServer,
-	NS_Connected,
 	NS_DisconnectingServer,
 } NetState;
 

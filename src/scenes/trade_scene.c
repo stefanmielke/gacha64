@@ -57,6 +57,7 @@ short trade_scene_tick() {
 	int option = menu_tick(trade_data->menu, &controller_data);
 	if (option >= 0) {
 		trade_data->player_1_chosen_sticker = (size_t)trade_data->menu->items[option].object;
+		queue_select_sticker(trade_data->player_1_chosen_sticker);
 	}
 
 	switch (trade_data->state) {
