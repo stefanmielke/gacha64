@@ -39,6 +39,13 @@ void queue_request_server() {
 	queue_enqueue(&queue_item);
 }
 
+void queue_disconnect_server() {
+	QueueItem queue_item;
+	queue_item.type = QIT_DisconnectServer;
+
+	queue_enqueue(&queue_item);
+}
+
 QueueItem *queue_dequeue() {
 	if (current_dequeue_pos == current_enqueue_pos) {
 		return NULL;

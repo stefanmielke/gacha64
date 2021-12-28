@@ -12,6 +12,7 @@ typedef enum NetState {
 	NS_RequestingServer,
 	NS_ConnectingServer,
 	NS_Connected,
+	NS_DisconnectingServer,
 } NetState;
 
 extern bool is_online;

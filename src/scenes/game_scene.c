@@ -14,7 +14,6 @@ typedef struct GameScreen {
 	Menu *menu;
 	sprite_t *background;
 	sprite_t *stickers;
-	sprite_t *game_ui;
 	size_t gacha_count;
 } GameScreen;
 GameScreen *game_data;
@@ -22,13 +21,13 @@ GameScreen *game_data;
 void game_scene_create() {
 	game_data = mem_zone_alloc(&memory_pool, sizeof(GameScreen));
 
-	game_data->menu = menu_init(&memory_pool, 2, 2, 30, 30, 16, NULL);
+	game_data->menu = menu_init(&memory_pool, 2, 2, 30, 40, 16, NULL);
+	menu_set_hand(game_data->menu, 27, 1);
 	menu_add_item(game_data->menu, "Open Gacha", true, NULL);
 	menu_add_item(game_data->menu, "Trade Online", true, NULL);
 
 	game_data->background = spritesheet_load(&memory_pool, "/gfx/background-stickers.sprite");
 	game_data->stickers = spritesheet_load(&memory_pool, "/gfx/stickers.sprite");
-	game_data->game_ui = spritesheet_load(&memory_pool, "/gfx/game_ui.sprite");
 
 	game_data->gacha_count = 5;
 }
@@ -96,7 +95,7 @@ void game_scene_display(display_context_t disp) {
 		for (size_t i = 0; i < game_data->gacha_count; ++i) {
 			int x = start_x - ((i % 2) * 14);
 			int y = start_y + ((i / 2) * 14);
-			graphics_draw_sprite_trans_stride(disp, x, y, game_data->game_ui, SPRITE_game_ui_gacha);
+			graphics_draw_sprite_trans_stride(disp, x, y, sprite_game_ui, SPRITE_game_ui_gacha);
 		}
 	}
 

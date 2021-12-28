@@ -65,6 +65,9 @@ void online_tick() {
 				case NETTYPE_UDP_CONNECT: {
 					network_state = NS_Connected;
 				} break;
+				case NETTYPE_UDP_DISCONNECT: {
+					network_state = NS_Paused;
+				} break;
 				case NETTYPE_URL_POST: {
 					switch (network_state) {
 						case NS_SendingNotification:
@@ -118,6 +121,10 @@ void online_tick() {
 				case QIT_RequestServer: {
 					network_url_post("http://localhost:5050/exchanges");
 					network_state = NS_RequestingServer;
+				} break;
+				case QIT_DisconnectServer: {
+					network_udp_disconnect();
+					network_state = NS_DisconnectingServer;
 				} break;
 				default:
 					break;

@@ -5,6 +5,7 @@
 typedef enum QueueItemType {
 	QIT_Notification,
 	QIT_RequestServer,
+	QIT_DisconnectServer,
 } QueueItemType;
 
 typedef struct QueueDataNotification {
@@ -14,9 +15,13 @@ typedef struct QueueDataNotification {
 typedef struct QueueDataRequestServer {
 } QueueDataRequestServer;
 
+typedef struct QueueDataDisconnectServer {
+} QueueDataDisconnectServer;
+
 typedef union QueueData {
 	QueueDataNotification notification;
 	QueueDataRequestServer request_server;
+	QueueDataDisconnectServer disconnect_server;
 } QueueData;
 
 typedef struct QueueItem {
@@ -30,3 +35,4 @@ QueueItem *queue_dequeue();
 
 void queue_notification(const char *message, size_t size);
 void queue_request_server();
+void queue_disconnect_server();
