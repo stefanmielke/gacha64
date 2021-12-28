@@ -54,13 +54,16 @@ short trade_scene_tick() {
 	if (controller_data.c[0].B)
 		return SCENE_GAME;
 
-	menu_tick(trade_data->menu, &controller_data);
+	int option = menu_tick(trade_data->menu, &controller_data);
+	if (option >= 0) {
+		trade_data->player_1_chosen_sticker = (size_t)trade_data->menu->items[option].object;
+	}
 
 	switch (trade_data->state) {
 		case GS_TradeStart:
 			online_start_exchange();
 			trade_data->state = GS_TradeConnecting;
-			trade_data->player_1_chosen_sticker = 0;
+			trade_data->player_1_chosen_sticker = -1;
 			trade_data->player_2_chosen_sticker = 0;
 			break;
 		case GS_TradeConnecting:
