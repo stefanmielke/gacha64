@@ -3,6 +3,7 @@
 #include <memory.h>
 #include "network.h"
 #include "queue.h"
+#include "online_types.h"
 
 bool is_online;
 
@@ -126,6 +127,13 @@ void online_tick() {
 					network_udp_disconnect();
 					network_state = NS_DisconnectingServer;
 				} break;
+				case QIT_SelectSticker: {
+					NetPacket packet;
+					packet.type = NPT_SendStickerId;
+					packet.data.send_sticker_id.sticker_id = item->data.select_sticker.sticker_id;
+
+					network_udp_send_data(&packet, sizeof(NetPacket));
+				} break;
 				default:
 					break;
 			}
@@ -141,8 +149,4 @@ void online_notify(char *message) {
 		return;
 
 	queue_notification(message, strlen(message));
-}
-
-void online_start_exchange() {
-	queue_request_server();
 }

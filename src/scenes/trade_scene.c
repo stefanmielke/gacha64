@@ -61,7 +61,7 @@ short trade_scene_tick() {
 
 	switch (trade_data->state) {
 		case GS_TradeStart:
-			online_start_exchange();
+			queue_request_server();
 			trade_data->state = GS_TradeConnecting;
 			trade_data->player_1_chosen_sticker = -1;
 			trade_data->player_2_chosen_sticker = 0;
