@@ -29,7 +29,9 @@ $(BUILD_DIR)/gacha64.dfs: $(wildcard build/filesystem/*)
 	mkdir -p build/filesystem
 	mkdir -p build/filesystem/gfx
 
-	$(MKSPRITEPATH) 32 16 1 assets/gfx/game_ui.png build/filesystem/gfx/game_ui.sprite
+	$(MKSPRITEPATH) 16 16 1 assets/gfx/game_ui.png build/filesystem/gfx/game_ui.sprite
+	$(MKSPRITEPATH) 16 9 8 assets/gfx/stickers.png build/filesystem/gfx/stickers.sprite
+	$(MKSPRITEPATH) 16 1 1 assets/gfx/background-stickers.png build/filesystem/gfx/background-stickers.sprite
 
 	$(N64_MKDFS) $@ $(<D)
 
