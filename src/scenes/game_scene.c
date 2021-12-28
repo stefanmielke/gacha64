@@ -42,6 +42,7 @@ short game_scene_tick() {
 				break;
 			}
 
+			srand((uint)get_ticks_ms());
 			int gacha_id = RANDN(STICKERS_MAX);
 			sticker_count[gacha_id]++;
 
