@@ -12,17 +12,7 @@ char responses[20][255];  // 20 lines, max 255 chars each
 char server_url[255];
 char server_connect[255];
 
-typedef enum NetState {
-	NS_GetNotification,
-	NS_Paused,
-
-	NS_AwaitingResponse,
-	NS_SendingNotification,
-	NS_GettingNotifications,
-	NS_RequestingServer,
-	NS_ConnectingServer,
-	NS_Connected,
-} NetState;
+NetState network_state;
 
 void online_init() {
 	is_online = network_initialize();
@@ -31,108 +21,110 @@ void online_init() {
 		memcpy(responses[0], "Offline Mode", 12);
 
 		queue_init();
+	} else {
+		network_state = NS_GetNotification;
 	}
 }
 
 void online_tick() {
-	static NetState network_state = NS_GetNotification;
-	if (is_online) {
-		if (network_state > NS_AwaitingResponse) {
-			int header;
-			if ((header = usb_poll())) {
-				int type = USBHEADER_GETTYPE(header);
-				int size = USBHEADER_GETSIZE(header);
-				char buffer[size];
-				usb_read(buffer, size);
+	if (!is_online)
+		return;
 
-				switch (type) {
-					case NETTYPE_TEXT: {
-						memset(responses, 0, 20 * 255);
-						responses_total_lines = 0;
+	if (network_state > NS_AwaitingResponse) {
+		int header;
+		if ((header = usb_poll())) {
+			int type = USBHEADER_GETTYPE(header);
+			int size = USBHEADER_GETSIZE(header);
+			char buffer[size];
+			usb_read(buffer, size);
 
-						int cur_line = 0;
-						int cur_column = 0;
-						for (size_t i = 0; i < size; ++i) {
-							if (buffer[i] == '\n') {
-								++cur_line;
-								cur_column = 0;
-								if (cur_line >= 20)
-									break;
-							} else {
-								if (cur_column < 255) {
-									responses[cur_line][cur_column] = buffer[i];
-								}
-								++cur_column;
+			switch (type) {
+				case NETTYPE_TEXT: {
+					memset(responses, 0, 20 * 255);
+					responses_total_lines = 0;
+
+					int cur_line = 0;
+					int cur_column = 0;
+					for (size_t i = 0; i < size; ++i) {
+						if (buffer[i] == '\n') {
+							++cur_line;
+							cur_column = 0;
+							if (cur_line >= 20)
+								break;
+						} else {
+							if (cur_column < 255) {
+								responses[cur_line][cur_column] = buffer[i];
 							}
+							++cur_column;
 						}
+					}
 
-						responses_total_lines = cur_line + 1;
-						network_state = NS_Paused;
-					} break;
-					case NETTYPE_UDP_CONNECT: {
-						network_state = NS_Connected;
-					} break;
-					case NETTYPE_URL_POST: {
-						switch (network_state) {
-							case NS_SendingNotification:
-								network_state = NS_GetNotification;
-								break;
-							case NS_RequestingServer: {
-								memset(server_url, 0, 255);
-								memset(server_connect, 0, 255);
+					responses_total_lines = cur_line + 1;
+					network_state = NS_Paused;
+				} break;
+				case NETTYPE_UDP_CONNECT: {
+					network_state = NS_Connected;
+				} break;
+				case NETTYPE_URL_POST: {
+					switch (network_state) {
+						case NS_SendingNotification:
+							network_state = NS_GetNotification;
+							break;
+						case NS_RequestingServer: {
+							memset(server_url, 0, 255);
+							memset(server_connect, 0, 255);
 
-								int cur_line = 0;
-								int cur_column = 0;
-								for (size_t i = 0; i < size; ++i) {
-									if (buffer[i] == '\n') {
-										++cur_line;
-										cur_column = 0;
-										if (cur_line >= 2)
-											break;
-									} else {
-										if (cur_column < 255) {
-											if (cur_line == 0)
-												server_url[cur_column] = buffer[i];
-											else
-												server_connect[cur_column] = buffer[i];
-										}
-										++cur_column;
+							int cur_line = 0;
+							int cur_column = 0;
+							for (size_t i = 0; i < size; ++i) {
+								if (buffer[i] == '\n') {
+									++cur_line;
+									cur_column = 0;
+									if (cur_line >= 2)
+										break;
+								} else {
+									if (cur_column < 255) {
+										if (cur_line == 0)
+											server_url[cur_column] = buffer[i];
+										else
+											server_connect[cur_column] = buffer[i];
 									}
+									++cur_column;
 								}
+							}
 
-								network_state = NS_ConnectingServer;
-								network_udp_connect(server_connect);
-							} break;
-							default:
-								break;
-						}
-					} break;
-					default:
-						break;
-				}
+							network_state = NS_ConnectingServer;
+							network_udp_connect(server_connect);
+						} break;
+						default:
+							break;
+					}
+				} break;
+				default:
+					break;
 			}
-		} else {
-			QueueItem *item = queue_dequeue();
-			if (item) {
-				switch (item->type) {
-					case QIT_Notification: {
-						char url[255];
-						snprintf(url, 255, "http://localhost:5050/notifications?message=%s",
-								 item->data.notification.message);
-						network_url_post(url);
-						network_state = NS_SendingNotification;
-					} break;
-					case QIT_RequestServer: {
-						network_url_post("http://localhost:5050/exchanges");
-						network_state = NS_RequestingServer;
-					} break;
-					default:
-						break;
-				}
-			} else if (network_state == NS_GetNotification) {
-				network_url_fetch("http://localhost:5050/notifications/");
-				network_state = NS_GettingNotifications;
+		}
+	} else {
+		QueueItem *item = queue_dequeue();
+		if (item) {
+			switch (item->type) {
+				case QIT_Notification: {
+					char url[255];
+					snprintf(url, 255, "http://localhost:5050/notifications?message=%s",
+							 item->data.notification.message);
+					network_url_post(url);
+					network_state = NS_SendingNotification;
+				} break;
+				case QIT_RequestServer: {
+					network_url_post("http://localhost:5050/exchanges");
+					network_state = NS_RequestingServer;
+				} break;
+				default:
+					break;
 			}
+		} else if (network_state == NS_GetNotification) {
+			network_url_fetch("http://localhost:5050/notifications/");
+			network_state = NS_GettingNotifications;
 		}
 	}
 }

@@ -24,7 +24,7 @@ void game_scene_create() {
 
 	game_data->menu = menu_init(&memory_pool, 2, 2, 30, 30, 16, NULL);
 	menu_add_item(game_data->menu, "Open Gacha", true, NULL);
-	menu_add_item(game_data->menu, "Trade Online", is_online, NULL);
+	menu_add_item(game_data->menu, "Trade Online", true, NULL);
 
 	game_data->background = spritesheet_load(&memory_pool, "/gfx/background-stickers.sprite");
 	game_data->stickers = spritesheet_load(&memory_pool, "/gfx/stickers.sprite");
