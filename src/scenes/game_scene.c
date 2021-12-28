@@ -6,12 +6,15 @@
 #include "scene_loader.h"
 #include "../color.h"
 #include "../game.h"
+#include "../gfx/game_ui.h"
 #include "../online/online.h"
 
 typedef struct GameScreen {
 	Menu *menu;
 	sprite_t *background;
 	sprite_t *stickers;
+	sprite_t *game_ui;
+	size_t gacha_count;
 } GameScreen;
 GameScreen *game_data;
 
@@ -24,6 +27,9 @@ void game_scene_create() {
 
 	game_data->background = spritesheet_load(&memory_pool, "/gfx/background-stickers.sprite");
 	game_data->stickers = spritesheet_load(&memory_pool, "/gfx/stickers.sprite");
+	game_data->game_ui = spritesheet_load(&memory_pool, "/gfx/game_ui.sprite");
+
+	game_data->gacha_count = 5;
 }
 
 short game_scene_tick() {
@@ -31,8 +37,13 @@ short game_scene_tick() {
 	switch (option) {
 		case 0: {
 			char notification[255];
-			snprintf(notification, 255, "%s_got_a_'%s'", "Mielke", "Bearly");
+			snprintf(notification, 255, "%s[0]", "Mielke");
 			online_notify(notification);
+
+			game_data->gacha_count--;
+			if (game_data->gacha_count == 0) {
+				game_data->menu->items[0].enabled = false;
+			}
 		} break;
 		case 1:
 			return SCENE_TRADE;
@@ -65,12 +76,21 @@ void game_scene_display(display_context_t disp) {
 		}
 	}
 
+	// render gacha count
+	{
+		int start_x = 182, start_y = 15;
+		for (size_t i = 0; i < game_data->gacha_count; ++i) {
+			int x = start_x - ((i % 2) * 14);
+			int y = start_y + ((i / 2) * 14);
+			graphics_draw_sprite_trans_stride(disp, x, y, game_data->game_ui, SPRITE_game_ui_gacha);
+		}
+	}
+
 	graphics_set_color(MESSAGE_TEXT_COLOR, 0);
 
-	const int start_x = 400, start_y = 50;
-	graphics_draw_text(disp, start_x, start_y - 20, "LATEST MESSAGES:");
+	const int start_x = 200, start_y = 15;
 	for (size_t i = 0; i < responses_total_lines; ++i) {
-		graphics_draw_text(disp, start_x, start_y + (i * 16), &responses[i][0]);
+		graphics_draw_text(disp, start_x, start_y + (i * 10), &responses[i][0]);
 	}
 
 	menu_render(game_data->menu, disp);
