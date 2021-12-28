@@ -2,6 +2,7 @@
 
 #include <menu.h>
 #include <spritesheet.h>
+#include <random.h>
 
 #include "scene_loader.h"
 #include "../color.h"
@@ -36,8 +37,16 @@ short game_scene_tick() {
 	int option = menu_tick(game_data->menu, &controller_data);
 	switch (option) {
 		case 0: {
+			if (game_data->gacha_count == 0) {
+				game_data->menu->items[0].enabled = false;
+				break;
+			}
+
+			int gacha_id = RANDN(STICKERS_MAX);
+			sticker_count[gacha_id]++;
+
 			char notification[255];
-			snprintf(notification, 255, "%s[0]", "Mielke");
+			snprintf(notification, 255, "%s[%d]", "Mielke", gacha_id);
 			online_notify(notification);
 
 			game_data->gacha_count--;
@@ -70,8 +79,12 @@ void game_scene_display(display_context_t disp) {
 
 			graphics_draw_sprite_trans_stride(disp, x, y, game_data->stickers, i);
 
-			char text[2];
-			snprintf(text, 2, "%d", sticker_count[i]);
+			char text[3];
+			if (sticker_count[i] <= 9)
+				snprintf(text, 3, "%d", sticker_count[i]);
+			else
+				snprintf(text, 3, "9+");
+
 			graphics_draw_text(disp, x, y + 16, text);
 		}
 	}
